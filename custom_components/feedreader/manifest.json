@@ -1,0 +1,12 @@
+{
+  "domain": "feedreader",
+  "name": "RSS\u9605\u8BFB\u5668",
+  "version": "2023.10.16",
+  "config_flow": true,
+  "documentation": "https://github.com/shaonianzhentan/feedreader",
+  "dependencies": [],
+  "codeowners": [
+    "@shaonianzhentan"
+  ],
+  "quality_scale": "internal"
+}
