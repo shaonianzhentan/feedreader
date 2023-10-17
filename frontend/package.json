@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@mdui/icons": "^1.0.1",
+    "dompurify": "^3.0.6",
     "lit": "^2.7.6",
     "mdui": "^2.0.1"
   },

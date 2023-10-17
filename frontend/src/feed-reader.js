@@ -1,11 +1,14 @@
-import { LitElement, css, html, safe } from 'lit'
+import { LitElement, css, html } from 'lit'
 import { createRef, ref } from 'lit/directives/ref.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+import * as DOMPurify from 'dompurify';
+import { setColorScheme } from 'mdui/functions/setColorScheme.js';
+
+setColorScheme('#C7EDCC');
 
 import 'mdui/mdui.css';
 
 import 'mdui/components/dropdown.js';
-
-import 'mdui/components/navigation-drawer.js';
 import 'mdui/components/list.js';
 import 'mdui/components/list-item.js';
 import 'mdui/components/list-subheader.js'
@@ -16,11 +19,9 @@ import 'mdui/components/button.js';
 import 'mdui/components/menu.js';
 import 'mdui/components/menu-item.js';
 
-import '@mdui/icons/menu.js';
 import '@mdui/icons/arrow-back.js';
 import '@mdui/icons/arrow-forward.js';
 import '@mdui/icons/close.js';
-import '@mdui/icons/home.js';
 
 class FeedReader extends LitElement {
   static get properties() {
@@ -35,13 +36,11 @@ class FeedReader extends LitElement {
   static get styles() {
     return css`
       :host {
+        padding: 10px;
         display: block;
-        width: 100%;
       }
-
-
-      .block {
-        width: 100%;
+      .content img{
+        max-width: 100%;
       }
     `
   }
@@ -55,6 +54,10 @@ class FeedReader extends LitElement {
     super()
     this.list = []
     this.index = -1
+    this.selected = {
+      title: '订阅列表',
+      url: ''
+    }
   }
 
   setConfig() {
@@ -62,7 +65,6 @@ class FeedReader extends LitElement {
   }
 
   render() {
-    console.log(this.hass)
 
     const entities = []
     Object.entries(this.hass.states).forEach(([key, state]) => {
@@ -75,10 +77,6 @@ class FeedReader extends LitElement {
       }
     })
 
-    if (!this.selected) {
-      this.selected = entities[0]
-      this._selectClick(this.selected)
-    }
     // 预览
     let previewHtml = ''
     if (this.index >= 0 && this.list.length > 0) {
@@ -86,21 +84,20 @@ class FeedReader extends LitElement {
       previewHtml = html`<mdui-dialog open fullscreen ${ref(this.dialogRef)}
       headline="${item.title}">
       <span slot="description">
-        Images will be permenantly removed from you account and all synced devices.
+        ${item.updated}
       </span>
-      ${safe(item.content)}
+      <div class="content">
+        ${unsafeHTML(DOMPurify.default.sanitize(item.content))}
+      </div>
       <mdui-bottom-app-bar ${ref(this.appBarRef)} scroll-behavior="hide" scroll-threshold="30">
-          <mdui-button-icon @click=${this._homeClick.bind(this)}>
-            <mdui-icon-home></mdui-icon-home>
-          </mdui-button-icon>
-  
+          <span>${this.index + 1}/${this.list.length}</span>
           <div style="flex-grow: 1"></div>
   
-          <mdui-button-icon disabled=${this.index <= 0} @click=${this._prevClick.bind(this)}>        
+          <mdui-button-icon ?disabled=${this.index <= 0} @click=${this._prevClick.bind(this)}>        
             <mdui-icon-arrow-back></mdui-icon-arrow-back>
           </mdui-button-icon>
 
-          <mdui-button-icon disabled=${this.index >= this.list.length - 1} @click=${this._nextClick.bind(this)}>
+          <mdui-button-icon ?disabled=${this.index >= this.list.length - 1} @click=${this._nextClick.bind(this)}>
             <mdui-icon-arrow-forward></mdui-icon-arrow-forward>
           </mdui-button-icon>
   
@@ -116,13 +113,18 @@ class FeedReader extends LitElement {
 
     return html`
   <mdui-dropdown>
-    <mdui-button slot="trigger" class="block">${this.selected.title}</mdui-button>
+    <mdui-button slot="trigger"  full-width>${this.selected.title}</mdui-button>
     <mdui-menu value="${this.selected.url}">${entities.map(item =>
-    html`<mdui-menu-item value="${item.url}" @click=${() => this._selectClick(item)}>${item.title}</mdui-menu-item>`)}</mdui-menu>
+      html`<mdui-menu-item value="${item.url}" @click=${() => this._selectClick(item)}>${item.title}</mdui-menu-item>`)}</mdui-menu>
   </mdui-dropdown>
 
   <mdui-list>
-    ${this.list.map((item, index) => html`<mdui-list-item headline="Headline" description="Supporting text" @click=${() => this._openClick(index)}>${item.title}</mdui-list-item>`)}
+    ${this.list.map((item, index) => html`<mdui-list-item 
+    ?active=${index === this.selectIndex}
+    headline=${item.title} 
+    description=${item.updated} @click=${() => this._openClick(index)}>
+    <span slot="icon">${index + 1}</span>
+    </mdui-list-item>`)}
   </mdui-list>
   
   ${previewHtml}`
@@ -130,6 +132,8 @@ class FeedReader extends LitElement {
 
   _selectClick(item) {
     this.selected = item
+    this.list = []
+    this.selectIndex = -1
     this.hass.fetchWithAuth('/api/feedreader', {
       method: 'POST',
       body: JSON.stringify({
@@ -143,11 +147,9 @@ class FeedReader extends LitElement {
     })
   }
 
-  _homeClick() {
-
-  }
 
   _openClick(index) {
+    this.selectIndex = index
     this.index = index
     setTimeout(() => {
       const appBar = this.appBarRef.value
@@ -162,12 +164,18 @@ class FeedReader extends LitElement {
     }, 500)
   }
 
+  goTop() {
+    this.dialogRef.value.bodyRef.value.scrollTop = 0
+  }
+
   _prevClick() {
-    this.index -= 1
+    if (this.index > 0) this.index -= 1
+    this.goTop()
   }
 
   _nextClick() {
-    this.index += 1
+    if (this.index < this.list.length - 1) this.index += 1;
+    this.goTop()
   }
 }
 
