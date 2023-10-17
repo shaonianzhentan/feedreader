@@ -8,11 +8,14 @@ from homeassistant.data_entry_flow import FlowResult
 import homeassistant.helpers.config_validation as cv
 from homeassistant.core import callback
 from homeassistant.config_entries import ConfigFlow, OptionsFlow, ConfigEntry
+import feedparser
 
 from .manifest import manifest
 
 DOMAIN = manifest.domain
-DATA_SCHEMA = vol.Schema({})
+DATA_SCHEMA = vol.Schema({
+    vol.Required("url"): str
+})
 
 class SimpleConfigFlow(ConfigFlow, domain=DOMAIN):
 
@@ -21,14 +24,16 @@ class SimpleConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Handle the initial step."""
-        if self._async_current_entries():
-            return self.async_abort(reason="single_instance_allowed")
 
         if user_input is None:
             return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA)
 
-        return self.async_create_entry(title=DOMAIN, data=user_input)
+        url = user_input.get('url').strip()
+        d = await self.hass.async_add_executor_job(feedparser.parse, url)
+        title = d['feed']['title']
+        return self.async_create_entry(title=title, data={
+            'url': url
+        })
 
     @staticmethod
     @callback

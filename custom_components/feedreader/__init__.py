@@ -3,29 +3,19 @@ from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
 
 from .manifest import manifest
+from .http_api import HttpApiView
 DOMAIN = manifest.domain
 
 CONFIG_SCHEMA = cv.deprecated(DOMAIN)
+PLATFORMS = ["sensor"]
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:    
-    url_path = entry.entry_id
-    require_admin = entry.options.get('require_admin', False)
-   
-    static_path = f'/{url_path}'
-    hass.http.register_static_path(static_path, hass.config.path("custom_components/" + DOMAIN + "/www"), False)
-
-    module_url = f"{static_path}/feed-reader.js?v={manifest.version}"
-    await hass.components.panel_custom.async_register_panel(
-            frontend_url_path=DOMAIN,
-            webcomponent_name="feed-reader",
-            sidebar_title=manifest.name,
-            sidebar_icon="mdi:book-lock-outline",
-            module_url=module_url,
-            config={},
-            require_admin=require_admin
-          )
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    
+    hass.http.register_view(HttpApiView)
+    hass.components.frontend.add_extra_js_url(hass, '/api/feedreader')
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 
 async def update_listener(hass, entry):
@@ -34,5 +24,4 @@ async def update_listener(hass, entry):
     await async_setup_entry(hass, entry)
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    hass.components.frontend.async_remove_panel(DOMAIN)
-    return True
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

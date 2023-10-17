@@ -1,0 +1,19 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mdui/icons": "^1.0.1",
+    "lit": "^2.7.6",
+    "mdui": "^2.0.1"
+  },
+  "devDependencies": {
+    "vite": "^4.4.5"
+  }
+}

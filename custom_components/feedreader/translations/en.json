@@ -1,27 +1,28 @@
 {
-    "config": {
-        "step": {
-            "user": {
-                "title": "RSS阅读器",
-                "description": "",
-                "data": {}
-            }
-        },
-        "error": {},
-        "abort": {
-            "single_instance_allowed": "仅允许单个配置."
+  "config": {
+    "step": {
+      "user": {
+        "title": "RSS阅读器",
+        "description": "",
+        "data": {
+          "url": "订阅地址"
         }
+      }
     },
-    "options": {
-        "step": {
-            "user": {
-                "title": "侧边栏面板显示",
-                "description": "",
-                "data": {
-                    "require_admin": "管理员可见"
-                }
-            }
-        },
-        "error": {}
+    "error": {},
+    "abort": {
+      "single_instance_allowed": "仅允许单个配置."
     }
+  },
+  "options": {
+    "step": {
+      "user": {
+        "title": "暂无",
+        "description": "",
+        "data": {
+        }
+      }
+    },
+    "error": {}
+  }
 }
