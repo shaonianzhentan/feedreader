@@ -41,8 +41,17 @@ class HttpApiView(HomeAssistantView):
         if result is not None:
             return result
 
+        hass = request.app["hass"]
         body = await request.json()
         
         url = body.get('url')
-        d = await self.hass.async_add_executor_job(feedparser.parse, url)        
-        return self.json(d.entries)
+        d = await hass.async_add_executor_job(feedparser.parse, url)
+        _list = []
+        for item in d.entries:
+            _list.append({
+                'id': item['id'],
+                'title': item['title'],
+                'content': item['summary'],
+                'updated': item['updated']
+            })
+        return self.json(_list)

@@ -24,6 +24,7 @@ class RssSensor(SensorEntity):
         )
         self.url = entry.data.get('url').strip()
         self._attr_extra_state_attributes = {
+            'source': 'rss',
             'url': self.url
         }
         self._state = None
@@ -51,6 +52,7 @@ class RssSensor(SensorEntity):
             if t is not None:
                 self._state = datetime(*t[:6], tzinfo=pytz.timezone(self.hass.config.time_zone))
                 self._attr_extra_state_attributes = {
+                    'source': 'rss',
                     'url': self.url,
                     'title': feed.get('title'),
                     'author': feed.get('author'),
