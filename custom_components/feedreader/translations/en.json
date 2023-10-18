@@ -9,7 +9,9 @@
         }
       }
     },
-    "error": {},
+    "error": {
+      "repeat": "请勿重复添加"
+    },
     "abort": {
       "single_instance_allowed": "仅允许单个配置."
     }
@@ -17,9 +19,11 @@
   "options": {
     "step": {
       "user": {
-        "title": "暂无",
+        "title": "配置",
         "description": "",
         "data": {
+          "scan_interval": "扫描间隔（分钟）",
+          "save_local": "保存本地"
         }
       }
     },

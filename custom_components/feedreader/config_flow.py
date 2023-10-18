@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 import voluptuous as vol
-
+from homeassistant.helpers import template
 from homeassistant.data_entry_flow import FlowResult
 
 import homeassistant.helpers.config_validation as cv
@@ -25,21 +25,37 @@ class SimpleConfigFlow(ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
 
-        if user_input is None:
-            return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA)
+        errors = {}
 
-        url = user_input.get('url').strip()
-        d = await self.hass.async_add_executor_job(feedparser.parse, url)
-        title = d['feed']['title']
-        return self.async_create_entry(title=title, data={
-            'url': url
-        })
+        if user_input is not None:
+            url = user_input.get('url').strip()
+            result = self.template("{% set url = '" + url + "' %}" + '''{% set entities = integration_entities('feedreader') %}
+    {% for entity_id in entities -%}
+      {% if is_state_attr(entity_id, "url", url) -%}
+        {{entity_id}}
+      {%- endif %}
+    {%- endfor %}
+            ''')
+            if result.strip() == '':
+                d = await self.hass.async_add_executor_job(feedparser.parse, url)
+                title = d['feed']['title']
+                return self.async_create_entry(title=title, data={
+                    'url': url
+                })
+            else:
+                errors['base'] = 'repeat'
+
+        return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA, errors=errors)
+
+        
+    def template(self, message):
+        tpl = template.Template(message, self.hass)
+        return tpl.async_render(None)
 
     @staticmethod
     @callback
     def async_get_options_flow(entry: ConfigEntry):
         return OptionsFlowHandler(entry)
-
 
 class OptionsFlowHandler(OptionsFlow):
     def __init__(self, config_entry: ConfigEntry):
@@ -54,7 +70,8 @@ class OptionsFlowHandler(OptionsFlow):
             options = self.config_entry.options
             errors = {}
             DATA_SCHEMA = vol.Schema({
-                vol.Required("require_admin", default=options.get('require_admin', False)): bool
+                vol.Required("scan_interval", default=options.get('scan_interval', 60)): int,
+                vol.Required("save_local", default=options.get('save_local', False)): bool
             })
             return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA, errors=errors)
         return self.async_create_entry(title='', data=user_input)

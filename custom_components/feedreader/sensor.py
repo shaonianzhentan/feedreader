@@ -1,9 +1,9 @@
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.entity import DeviceInfo, Entity
-import time, feedparser
-from .manifest import manifest
+import time, feedparser, requests, hashlib, pytz
 from datetime import datetime
-import pytz
+
+from .manifest import manifest
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     async_add_entities([RssSensor(config_entry)])
@@ -22,7 +22,12 @@ class RssSensor(SensorEntity):
             configuration_url=manifest.documentation,
             identifiers={(manifest.domain, 'shaonianzhentan')},
         )
+        # 读取配置
         self.url = entry.data.get('url').strip()
+        options = entry.options
+        self.scan_interval = options.get('scan_interval', 60) * 60
+        self.save_local = options.get('save_local', False)
+
         self._attributes = {
             'custom_ui_more_info': 'feed-reader',
             'title': self._attr_name,
@@ -39,18 +44,38 @@ class RssSensor(SensorEntity):
     def state_attributes(self):
         return self._attributes
 
+    def download(self, url):
+        filename = manifest.get_storage_dir(hashlib.md5(url.encode()).hexdigest() + '.xml')
+        # 发起GET请求来下载文件
+        response = requests.get(url, stream=True)
+        # 检查请求是否成功
+        if response.status_code == 200:
+            # 打开一个文件，并将响应内容写入
+            with open(filename, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+            return filename
+
     async def async_update(self):
         now = time.time()
         is_fetch = False
         if self.update_at is not None:
             time_diff = now - self.update_at
-            if time_diff > 3600:
+            if time_diff > self.scan_interval:
                 is_fetch = True
         else:
             is_fetch = True
 
         if is_fetch:
-            d = await self.hass.async_add_executor_job(feedparser.parse, self.url)
+            url = self.url
+            # 保存文件
+            if self.save_local:
+                res = await self.hass.async_add_executor_job(self.download, url)
+                if res is not None:
+                    url = res
+            # 读取内容
+            d = await self.hass.async_add_executor_job(feedparser.parse, url)
             feed = d['feed']
             self.update_at = now
             t = feed.get('updated_parsed')
