@@ -23,8 +23,9 @@ class RssSensor(SensorEntity):
             identifiers={(manifest.domain, 'shaonianzhentan')},
         )
         self.url = entry.data.get('url').strip()
-        self._attr_extra_state_attributes = {
-            'source': 'rss',
+        self._attributes = {
+            'custom_ui_more_info': 'feed-reader',
+            'title': self._attr_name,
             'url': self.url
         }
         self._state = None
@@ -33,6 +34,10 @@ class RssSensor(SensorEntity):
     @property
     def state(self):
         return self._state
+
+    @property
+    def state_attributes(self):
+        return self._attributes
 
     async def async_update(self):
         now = time.time()
@@ -51,10 +56,7 @@ class RssSensor(SensorEntity):
             t = feed.get('updated_parsed')
             if t is not None:
                 self._state = datetime(*t[:6], tzinfo=pytz.timezone(self.hass.config.time_zone))
-                self._attr_extra_state_attributes = {
-                    'source': 'rss',
-                    'url': self.url,
-                    'title': feed.get('title'),
-                    'author': feed.get('author'),
-                    'count': len(d.entries)
-                }
+                self._attributes.update({
+                  'author': feed.get('author'),
+                  'count': len(d.entries)
+                })

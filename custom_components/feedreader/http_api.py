@@ -1,10 +1,8 @@
-import time, json, aiohttp, logging, feedparser
+import time, feedparser
 from homeassistant.components.http import HomeAssistantView
-from homeassistant.util.json import load_json
 from aiohttp import web
 
-from .manifest import manifest
-_LOGGER = logging.getLogger(__name__)
+from .manifest import CURRENT_PATH
 
 class HttpApiView(HomeAssistantView):
 
@@ -29,9 +27,8 @@ class HttpApiView(HomeAssistantView):
 # endregion
 
     async def get(self, request):
-        hass = request.app["hass"]
         response = web.Response(content_type='text/javascript')
-        file_path = hass.config.path("custom_components/" + manifest.domain + "/www/feed-reader.js")
+        file_path =  f"{CURRENT_PATH}/feed-reader.js"
         with open(file_path, 'rb') as f:
             response.text = f.read().decode('utf-8')
         return response
@@ -52,6 +49,6 @@ class HttpApiView(HomeAssistantView):
                 'id': item['id'],
                 'title': item['title'],
                 'content': item['summary'],
-                'updated': item['updated']
+                'updated': time.strftime('%Y-%m-%d %H:%M:%S', item['updated_parsed'])
             })
         return self.json(_list)
