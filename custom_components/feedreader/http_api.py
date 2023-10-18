@@ -10,28 +10,13 @@ class HttpApiView(HomeAssistantView):
     name = "api:feedreader"
     requires_auth = False
 
-# region 权限验证
-
-    def get_access_token(self, request):
-        authorization = request.headers.get('Authorization')
-        return str(authorization).replace('Bearer', '').strip()
-
-    async def async_validate_access_token(self, request):
-        ''' 授权验证 '''
-        hass = request.app["hass"]
-        hass_access_token = self.get_access_token(request)
-        token = await hass.auth.async_validate_access_token(hass_access_token)
-        if token is None:
-            return self.json_message("未授权", status_code=401)
-
-# endregion
-
     async def get(self, request):
-        response = web.Response(content_type='text/javascript')
-        file_path =  f"{CURRENT_PATH}/feed-reader.js"
+        file_path =  f"{CURRENT_PATH}/feed-reader.js.gz"
         with open(file_path, 'rb') as f:
-            response.text = f.read().decode('utf-8')
-        return response
+            response = web.Response(body=f.read())            
+            response.headers['Content-Encoding'] = 'gzip'
+            response.headers['Content-Type'] = 'text/javascript'
+            return response
 
     async def post(self, request):
         result = await self.async_validate_access_token(request)
@@ -59,3 +44,19 @@ class HttpApiView(HomeAssistantView):
                 'updated': time.strftime('%Y-%m-%d %H:%M:%S', updated)
             })
         return self.json(_list)
+    
+# region 权限验证
+
+    def get_access_token(self, request):
+        authorization = request.headers.get('Authorization')
+        return str(authorization).replace('Bearer', '').strip()
+
+    async def async_validate_access_token(self, request):
+        ''' 授权验证 '''
+        hass = request.app["hass"]
+        hass_access_token = self.get_access_token(request)
+        token = await hass.auth.async_validate_access_token(hass_access_token)
+        if token is None:
+            return self.json_message("未授权", status_code=401)
+
+# endregion
