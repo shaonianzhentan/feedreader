@@ -1093,4 +1093,4 @@ var ki=Object.defineProperty;var $i=(e,t,r)=>t in e?ki(e,t,{enumerable:!0,config
     </ha-list-item>`)}
   
   
-  ${r}`}_openClick(r){this.selectIndex=r,this.index=r,setTimeout(()=>{const o=this.appBarRef.value;o.scrollTarget=this.dialogRef.value.bodyRef.value},500)}_closeClick(){this.index=-1}goTop(){this.dialogRef.value.bodyRef.value.scrollTop=0}_prevClick(){this.index>0&&(this.index-=1),this.goTop()}_nextClick(){this.index<this.list.length-1&&(this.index+=1),this.goTop()}}window.customElements.define("feed-reader",Ua);
+  ${r}`}_openClick(r){this.selectIndex=r,this.index=r,setTimeout(()=>{const o=this.appBarRef.value;o.scrollTarget=this.dialogRef.value.bodyRef.value},500)}_closeClick(){this.index=-1}goTop(){this.selectIndex=this.index,this.dialogRef.value.bodyRef.value.scrollTop=0}_prevClick(){this.index>0&&(this.index-=1),this.goTop()}_nextClick(){this.index<this.list.length-1&&(this.index+=1),this.goTop()}}window.customElements.define("feed-reader",Ua);

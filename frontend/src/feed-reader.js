@@ -794,6 +794,7 @@ class FeedReader extends LitElement {
   }
 
   goTop() {
+    this.selectIndex = this.index
     this.dialogRef.value.bodyRef.value.scrollTop = 0
   }
 
