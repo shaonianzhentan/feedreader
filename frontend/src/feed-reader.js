@@ -22,6 +22,7 @@ class FeedReader extends LitElement {
       list: { type: Array },
       index: { type: Number },
       loading: { type: Boolean },
+      page: { type: String },
     }
   }
 
@@ -708,8 +709,14 @@ class FeedReader extends LitElement {
     }
   }
 
-  setConfig() {
-
+  post(url, data) {
+    return this.hass.fetchWithAuth(url, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
   }
 
   render() {
@@ -717,13 +724,7 @@ class FeedReader extends LitElement {
       this.loading = true
       this.list = []
       const { url } = this.stateObj.attributes
-      this.hass.fetchWithAuth('/api/feedreader', {
-        method: 'POST',
-        body: JSON.stringify({ url }),
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      }).then(res => res.json()).then((list) => {
+      this.post('/api/feedreader', { url }).then(res => res.json()).then((list) => {
         this.list = list
       }).finally(() => {
         this.loading = false
@@ -763,21 +764,49 @@ class FeedReader extends LitElement {
     </mdui-dialog>`
     }
 
-    return html`<ha-attributes .hass=${this.hass} .stateObj=${this.stateObj}></ha-attributes>
+    let tabHtml
+    switch (this.page) {
+      case 'attributes':
+        tabHtml = html`<ha-more-info-logbook
+                        .hass=${this.hass}
+                        .entityId=${this.stateObj.entity_id}
+                      ></ha-more-info-logbook>
+                      <ha-attributes .hass=${this.hass} .stateObj=${this.stateObj}></ha-attributes>`
+        break;
+      default:
+        tabHtml = html`${this.loading ? html`<div style="text-align: center;"><ha-circular-progress size="large" active></ha-circular-progress></div>` : ''}
+  
+                ${this.list.map((item, index) => html`<ha-list-item twoline
+                ?activated=${index === this.selectIndex}
+                @click=${() => this._openClick(index)}>
+            
+                <span>${item.title}</span>
+                <span slot="secondary">${item.updated}</span>       
+                <span slot="graphic" >${index + 1}</span>
+                </ha-list-item>`)}
+                <div style="text-align:right;">
+                  <mwc-button @click=${this._configClick}>配置实体</mwc-button>
+                </div>
+                `
+        break;
+    }
 
-    ${this.loading ? html`<div style="text-align: center;"><ha-circular-progress size="large" active></ha-circular-progress></div>` : ''}
-  
-    ${this.list.map((item, index) => html`<ha-list-item twoline
-    ?activated=${index === this.selectIndex}
-    @click=${() => this._openClick(index)}>
+    return html`${previewHtml}
+    <paper-tabs attr-for-selected="page-name" .selected=${this.page} @selected-changed=${(ev) => this.page = ev.detail.value}>
+      <paper-tab page-name="default">信息列表</paper-tab>
+      <paper-tab page-name="attributes">属性日志</paper-tab>
+    </paper-tabs>${tabHtml}`
+  }
 
-    <span>${item.title}</span>
-    <span slot="secondary">${item.updated}</span>       
-    <span slot="graphic" >${index + 1}</span>
-    </ha-list-item>`)}
-  
-  
-  ${previewHtml}`
+  _configClick() {
+    this.post('/api/template', { template: '{{config_entry_id("' + this.stateObj.entity_id + '")}}' }).then(res => res.text()).then((config_entry_id) => {
+      const url = `/config/integrations/integration/feedreader#config_entry=${config_entry_id}`
+      history.pushState(null, "", url)
+      this.fireEvent('location-changed', { replace: false })
+      
+      const dialog = document.querySelector('home-assistant').shadowRoot.querySelector('ha-more-info-dialog')
+      this.fireEvent.call(dialog, 'close-dialog')
+    })
   }
 
   _openClick(index) {
@@ -806,6 +835,16 @@ class FeedReader extends LitElement {
   _nextClick() {
     if (this.index < this.list.length - 1) this.index += 1;
     this.goTop()
+  }
+
+  fireEvent(type, data={}) {
+    const event = new Event(type, {
+      bubbles: true,
+      cancelable: false,
+      composed: true
+    });
+    event.detail = data;
+    this.dispatchEvent(event);
   }
 }
 
