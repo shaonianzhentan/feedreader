@@ -784,17 +784,15 @@ class FeedReader extends LitElement {
                 <span slot="secondary">${item.updated}</span>       
                 <span slot="graphic" >${index + 1}</span>
                 </ha-list-item>`)}
-                <div style="text-align:right;">
-                  <mwc-button @click=${this._configClick}>配置实体</mwc-button>
-                </div>
                 `
         break;
     }
 
     return html`${previewHtml}
     <paper-tabs attr-for-selected="page-name" .selected=${this.page} @selected-changed=${(ev) => this.page = ev.detail.value}>
-      <paper-tab page-name="default">信息列表</paper-tab>
-      <paper-tab page-name="attributes">属性日志</paper-tab>
+      <paper-tab page-name="default">列表</paper-tab>
+      <paper-tab page-name="attributes">属性</paper-tab>
+      <paper-tab page-name="config" @click=${this._configClick}>配置</paper-tab>
     </paper-tabs>${tabHtml}`
   }
 
