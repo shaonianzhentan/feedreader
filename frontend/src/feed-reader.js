@@ -3,6 +3,7 @@ import { createRef, ref } from 'lit/directives/ref.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import * as DOMPurify from 'dompurify';
 import { setColorScheme } from 'mdui/functions/setColorScheme.js';
+import { throttle } from 'mdui/functions/throttle.js';
 
 setColorScheme('#C7EDCC');
 
@@ -814,11 +815,11 @@ class FeedReader extends LitElement {
       const body = this.dialogRef.value.bodyRef.value
       const appBar = this.appBarRef.value
       appBar.scrollTarget = body
-      body.onscroll = () => {
-        if (body.scrollTop + body.clientHeight >= body.scrollHeight - 10) {
+      body.onscroll = throttle(() => {
+        if (body.scrollTop + body.clientHeight >= body.scrollHeight - 40) {
           appBar.removeAttribute('hide')
         }
-      }
+      }, 100)
     }, 500)
   }
 
