@@ -1,6 +1,6 @@
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.entity import DeviceInfo, Entity
-import time, feedparser, requests, hashlib, pytz
+import time, feedparser, requests, hashlib, pytz, os
 from datetime import datetime
 
 from .manifest import manifest
@@ -35,6 +35,11 @@ class RssSensor(SensorEntity):
         }
         self._state = None
         self.update_at = None
+        # 删除缓存文件
+        if self.save_local == False:
+            filename = self.get_filename(self.url)
+            if os.path.exists(filename):
+                os.remove(filename)
 
     @property
     def state(self):
@@ -43,9 +48,12 @@ class RssSensor(SensorEntity):
     @property
     def state_attributes(self):
         return self._attributes
+    
+    def get_filename(self, url):
+        return manifest.get_storage_dir(hashlib.md5(url.encode()).hexdigest() + '.xml')
 
     def download(self, url):
-        filename = manifest.get_storage_dir(hashlib.md5(url.encode()).hexdigest() + '.xml')
+        filename = self.get_filename(url)
         # 发起GET请求来下载文件
         response = requests.get(url, stream=True)
         # 检查请求是否成功
