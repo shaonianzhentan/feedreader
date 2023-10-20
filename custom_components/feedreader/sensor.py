@@ -25,7 +25,7 @@ class RssSensor(SensorEntity):
         # 读取配置
         self.url = entry.data.get('url').strip()
         options = entry.options
-        self.scan_interval = options.get('scan_interval', 60) * 60
+        self.scan_interval = options.get('scan_interval', 120) * 60
         self.save_local = options.get('save_local', False)
 
         self._attributes = {
