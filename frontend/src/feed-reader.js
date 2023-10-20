@@ -803,7 +803,7 @@ class FeedReader extends LitElement {
       const url = `/config/integrations/integration/feedreader#config_entry=${config_entry_id}`
       history.pushState(null, "", url)
       this.fireEvent('location-changed', { replace: false })
-      
+
       const dialog = document.querySelector('home-assistant').shadowRoot.querySelector('ha-more-info-dialog')
       this.fireEvent.call(dialog, 'close-dialog')
     })
@@ -813,8 +813,14 @@ class FeedReader extends LitElement {
     this.selectIndex = index
     this.index = index
     setTimeout(() => {
+      const body = this.dialogRef.value.bodyRef.value
       const appBar = this.appBarRef.value
-      appBar.scrollTarget = this.dialogRef.value.bodyRef.value
+      appBar.scrollTarget = body
+      body.onscroll = () => {
+        if (body.scrollTop + body.clientHeight >= body.scrollHeight - 10) {
+          appBar.removeAttribute('hide')
+        }
+      }
     }, 500)
   }
 
@@ -837,7 +843,7 @@ class FeedReader extends LitElement {
     this.goTop()
   }
 
-  fireEvent(type, data={}) {
+  fireEvent(type, data = {}) {
     const event = new Event(type, {
       bubbles: true,
       cancelable: false,

@@ -19,6 +19,9 @@ class Manifest():
     def get_storage_dir(self, file_name):
         folder_path = os.path.abspath(f'{STORAGE_DIR}/feedreader')
         if not os.path.exists(folder_path):
+            # 删除配置文件防止出错
+            if os.path.isfile(folder_path):
+                os.remove(folder_path)
             os.makedirs(folder_path)
         return os.path.join(folder_path, file_name)
 
