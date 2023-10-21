@@ -24,4 +24,7 @@ async def update_listener(hass, entry):
     await async_setup_entry(hass, entry)
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    # 删除缓存文件
+    manifest.remove_file(entry.data.get('url').strip())
+
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

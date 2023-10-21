@@ -1,4 +1,4 @@
-import os
+import os, hashlib
 from homeassistant.util.json import load_json
 from homeassistant.helpers.storage import STORAGE_DIR
 CURRENT_PATH = os.path.dirname(__file__)
@@ -15,6 +15,14 @@ class Manifest():
         self.name = data.get('name')
         self.version = data.get('version')
         self.documentation = data.get('documentation')
+
+    def get_filename(self, url):
+        return self.get_storage_dir(hashlib.md5(url.encode()).hexdigest() + '.xml')
+
+    def remove_file(self, url):
+        filename = self.get_filename(url)
+        if os.path.exists(filename):
+            os.remove(filename)
 
     def get_storage_dir(self, file_name):
         folder_path = os.path.abspath(f'{STORAGE_DIR}/feedreader')

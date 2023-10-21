@@ -25,8 +25,8 @@ class RssSensor(SensorEntity):
         # 读取配置
         self.url = entry.data.get('url').strip()
         options = entry.options
-        self.scan_interval = options.get('scan_interval', 120) * 60
-        self.save_local = options.get('save_local', False)
+        self.scan_interval = options.get('scan_interval', 180) * 60
+        self.save_local = options.get('save_local', True)
 
         self._attributes = {
             'custom_ui_more_info': 'feed-reader',
@@ -35,11 +35,6 @@ class RssSensor(SensorEntity):
         }
         self._state = None
         self.update_at = None
-        # 删除缓存文件
-        if self.save_local == False:
-            filename = self.get_filename(self.url)
-            if os.path.exists(filename):
-                os.remove(filename)
 
     @property
     def state(self):
@@ -49,11 +44,8 @@ class RssSensor(SensorEntity):
     def state_attributes(self):
         return self._attributes
     
-    def get_filename(self, url):
-        return manifest.get_storage_dir(hashlib.md5(url.encode()).hexdigest() + '.xml')
-
     def download(self, url):
-        filename = self.get_filename(url)
+        filename = manifest.get_filename(url)
         # 发起GET请求来下载文件
         response = requests.get(url, stream=True)
         # 检查请求是否成功

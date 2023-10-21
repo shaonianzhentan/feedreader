@@ -70,8 +70,8 @@ class OptionsFlowHandler(OptionsFlow):
             options = self.config_entry.options
             errors = {}
             DATA_SCHEMA = vol.Schema({
-                vol.Required("scan_interval", default=options.get('scan_interval', 120)): int,
-                vol.Required("save_local", default=options.get('save_local', False)): bool
+                vol.Required("scan_interval", default=options.get('scan_interval', 180)): int,
+                vol.Required("save_local", default=options.get('save_local', True)): bool
             })
             return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA, errors=errors)
         return self.async_create_entry(title='', data=user_input)
