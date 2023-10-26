@@ -46,16 +46,12 @@ class RssSensor(SensorEntity):
     
     def download(self, url):
         filename = manifest.get_filename(url)
-        # 发起GET请求来下载文件
-        response = requests.get(url, stream=True)
-        # 检查请求是否成功
+        response = requests.get(url)
         if response.status_code == 200:
-            # 打开一个文件，并将响应内容写入
-            with open(filename, 'wb') as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    if chunk:
-                        f.write(chunk)
-            return filename
+            if response.text:
+                with open(filename, 'w') as f:
+                    f.write(response.text)
+                    return filename
 
     async def async_update(self):
         now = time.time()
