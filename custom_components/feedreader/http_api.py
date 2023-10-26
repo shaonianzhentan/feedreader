@@ -1,8 +1,9 @@
-import time, feedparser, hashlib, os
+import hashlib, os
 from homeassistant.components.http import HomeAssistantView
 from aiohttp import web
 
 from .manifest import manifest, CURRENT_PATH
+from .feedreader import feed
 
 class HttpApiView(HomeAssistantView):
 
@@ -37,18 +38,8 @@ class HttpApiView(HomeAssistantView):
         if os.path.exists(filename):
             url = filename
 
-        d = await hass.async_add_executor_job(feedparser.parse, url)
-        feed = d['feed']
-        _list = []
-        for item in d.entries:
-            updated = item.get('updated_parsed', feed.get('updated_parsed'))
-            _list.append({
-                'id': item['id'],
-                'title': item['title'],
-                'content': item['summary'],
-                'updated': time.strftime('%Y-%m-%d %H:%M:%S', updated)
-            })
-        return self.json(_list)
+        d = await hass.async_add_executor_job(feed.get_data, url)
+        return self.json(d.get('list', []))
     
 # region 权限验证
 

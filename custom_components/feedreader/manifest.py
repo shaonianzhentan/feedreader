@@ -36,4 +36,7 @@ class Manifest():
     def is_url(self, url):
         return url.startswith("http://") or url.startswith("https://")
 
+    def is_json(self, url):
+        return self.is_url(url) == False and url.endswith('.json')
+
 manifest = Manifest()

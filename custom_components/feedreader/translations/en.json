@@ -11,7 +11,8 @@
     },
     "error": {
       "repeat": "请勿重复添加",
-      "not_found": "RSS文件不存在"
+      "not_found": "RSS文件不存在",
+      "parse": "解析错误，数据不正确"
     },
     "abort": {
       "single_instance_allowed": "仅允许单个配置."

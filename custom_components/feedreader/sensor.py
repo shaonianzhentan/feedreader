@@ -1,12 +1,17 @@
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.helpers.entity import DeviceInfo, Entity
-import time, feedparser, requests, hashlib, pytz, os
+from homeassistant.helpers.entity import DeviceInfo
+import time
+import requests
+import pytz
 from datetime import datetime
 
 from .manifest import manifest
+from .feedreader import feed
+
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     async_add_entities([RssSensor(config_entry)])
+
 
 class RssSensor(SensorEntity):
 
@@ -43,7 +48,7 @@ class RssSensor(SensorEntity):
     @property
     def state_attributes(self):
         return self._attributes
-    
+
     def download(self, url):
         filename = manifest.get_filename(url)
         response = requests.get(url)
@@ -74,13 +79,14 @@ class RssSensor(SensorEntity):
             else:
                 url = manifest.get_storage_dir(url)
             # 读取内容
-            d = await self.hass.async_add_executor_job(feedparser.parse, url)
-            feed = d['feed']
+            d = await self.hass.async_add_executor_job(feed.get_data, url)
             self.update_at = now
-            t = feed.get('updated_parsed')
-            if t is not None:
-                self._state = datetime(*t[:6], tzinfo=pytz.timezone(self.hass.config.time_zone))
+            count = len(d.get('list', []))
+            if count > 0:
+                self._state = datetime.now(pytz.timezone(
+                    self.hass.config.time_zone)).isoformat()
                 self._attributes.update({
-                  'author': feed.get('author'),
-                  'count': len(d.entries)
+                    'author': d.get('author'),
+                    'updated': d.get('updated'),
+                    'count': count
                 })

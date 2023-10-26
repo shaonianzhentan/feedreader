@@ -8,8 +8,8 @@ from homeassistant.data_entry_flow import FlowResult
 import homeassistant.helpers.config_validation as cv
 from homeassistant.core import callback
 from homeassistant.config_entries import ConfigFlow, OptionsFlow, ConfigEntry
-import feedparser, os
-
+import os
+from .feedreader import feed
 from .manifest import manifest
 
 DOMAIN = manifest.domain
@@ -46,11 +46,14 @@ class SimpleConfigFlow(ConfigFlow, domain=DOMAIN):
                         errors['base'] = 'not_found'
 
                 if link is not None:
-                    d = await self.hass.async_add_executor_job(feedparser.parse, link)
-                    title = d['feed']['title']
-                    return self.async_create_entry(title=title, data={
-                        'url': url
-                    })
+                    d = await self.hass.async_add_executor_job(feed.get_data, link)
+                    title = d['title']
+                    if title:
+                        return self.async_create_entry(title=title, data={
+                            'url': url
+                        })
+                    else:
+                        errors['base'] = 'parse'
             else:
                 errors['base'] = 'repeat'
 
