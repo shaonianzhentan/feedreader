@@ -65,11 +65,14 @@ class RssSensor(SensorEntity):
 
         if is_fetch:
             url = self.url
-            # 保存文件
-            if self.save_local:
-                res = await self.hass.async_add_executor_job(self.download, url)
-                if res is not None:
-                    url = res
+            if url.startswith("http"):
+                # 保存文件
+                if self.save_local:
+                    res = await self.hass.async_add_executor_job(self.download, url)
+                    if res is not None:
+                        url = res
+            else:
+                url = manifest.get_storage_dir(url)
             # 读取内容
             d = await self.hass.async_add_executor_job(feedparser.parse, url)
             feed = d['feed']

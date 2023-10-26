@@ -32,5 +32,8 @@ class Manifest():
                 os.remove(folder_path)
             os.makedirs(folder_path)
         return os.path.join(folder_path, file_name)
+    
+    def is_url(self, url):
+        return url.startswith("http://") or url.startswith("https://")
 
 manifest = Manifest()

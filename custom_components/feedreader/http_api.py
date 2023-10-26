@@ -27,8 +27,13 @@ class HttpApiView(HomeAssistantView):
         body = await request.json()
         
         url = body.get('url')
+
         # 读取本地文件
-        filename = manifest.get_storage_dir(hashlib.md5(url.encode()).hexdigest() + '.xml')
+        if manifest.is_url(url):
+            filename = manifest.get_storage_dir(hashlib.md5(url.encode()).hexdigest() + '.xml')
+        else:
+            filename = manifest.get_storage_dir(url)
+
         if os.path.exists(filename):
             url = filename
 
