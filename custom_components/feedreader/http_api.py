@@ -39,7 +39,10 @@ class HttpApiView(HomeAssistantView):
             url = filename
 
         d = await hass.async_add_executor_job(feed.get_data, url)
-        return self.json(d.get('list', []))
+        return self.json({
+            'next_url': d.get('next_url'),
+            'list': d.get('list', [])
+        })
     
 # region 权限验证
 

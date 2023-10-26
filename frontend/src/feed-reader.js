@@ -725,7 +725,8 @@ class FeedReader extends LitElement {
       this.loading = true
       this.list = []
       const { url } = this.stateObj.attributes
-      this.post('/api/feedreader', { url }).then(res => res.json()).then((list) => {
+      this.post('/api/feedreader', { url }).then(res => res.json()).then(({ next_url, list }) => {
+        this.next_url = next_url
         this.list = list
       }).finally(() => {
         this.loading = false
@@ -785,6 +786,8 @@ class FeedReader extends LitElement {
                 <span slot="secondary">${item.updated}</span>       
                 <span slot="graphic" >${index + 1}</span>
                 </ha-list-item>`)}
+
+                ${this.next_url ? `<mwc-button fullwidth @click=${this._nextClick}>下一页</mwc-button>` : ''}
                 `
         break;
     }
@@ -821,6 +824,17 @@ class FeedReader extends LitElement {
         }
       }, 100)
     }, 500)
+  }
+
+  _nextClick() {
+    if (this._loading) return;
+    this._loading = true
+    this.post('/api/feedreader', { url: this.next_url }).then(res => res.json()).then(({ next_url, list }) => {
+      this.next_url = next_url
+      Array.prototype.push.apply(this.list, list)
+    }).finally(() => {
+      this._loading = false
+    })
   }
 
   _closeClick() {
