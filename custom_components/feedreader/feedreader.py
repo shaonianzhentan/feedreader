@@ -14,7 +14,7 @@ class FeedReader():
         else:
             d = feedparser.parse(url)
             _feed = d['feed']
-            updated_parsed = _feed.get('updated_parsed')
+            updated_parsed = _feed.get('updated_parsed', time.localtime(time.time()))
             for item in d.entries:
                 updated = item.get('updated_parsed', updated_parsed)
                 _list.append({

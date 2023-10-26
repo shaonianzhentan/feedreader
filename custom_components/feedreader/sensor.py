@@ -83,8 +83,7 @@ class RssSensor(SensorEntity):
             self.update_at = now
             count = len(d.get('list', []))
             if count > 0:
-                self._state = datetime.now(pytz.timezone(
-                    self.hass.config.time_zone)).isoformat()
+                self._state = datetime.now(pytz.timezone(self.hass.config.time_zone)).isoformat()
                 self._attributes.update({
                     'author': d.get('author'),
                     'updated': d.get('updated'),
