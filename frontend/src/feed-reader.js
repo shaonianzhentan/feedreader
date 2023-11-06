@@ -14,6 +14,8 @@ import 'mdui/components/dialog.js';
 import '@mdui/icons/arrow-back.js';
 import '@mdui/icons/arrow-forward.js';
 import '@mdui/icons/close.js';
+import '@mdui/icons/vertical-align-top.js';
+import '@mdui/icons/link.js';
 
 class FeedReader extends LitElement {
   static get properties() {
@@ -747,7 +749,14 @@ class FeedReader extends LitElement {
       </div>
       <mdui-bottom-app-bar ${ref(this.appBarRef)} scroll-behavior="hide" scroll-threshold="30">
           <span>${this.index + 1}/${this.list.length}</span>
+
+          ${item.link ? html`<mdui-button-icon href="${item.link}" target="_blank"><mdui-icon-link></mdui-icon-link></mdui-button-icon>` : ''}
+
           <div style="flex-grow: 1"></div>
+
+          <mdui-button-icon @click=${this.goTop.bind(this)}>
+            <mdui-icon-vertical-align-top></mdui-icon-vertical-align-top>
+          </mdui-button-icon>
   
           <mdui-button-icon ?disabled=${this.index <= 0} @click=${this._prevClick.bind(this)}>        
             <mdui-icon-arrow-back></mdui-icon-arrow-back>

@@ -21,6 +21,7 @@ class FeedReader():
                     'id': item['id'],
                     'title': item['title'],
                     'content': item['summary'],
+                    'link': item.get('link'),
                     'updated': time.strftime('%Y-%m-%d %H:%M:%S', updated)
                 })
             return {
