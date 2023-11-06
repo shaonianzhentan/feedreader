@@ -748,9 +748,10 @@ class FeedReader extends LitElement {
         ${unsafeHTML(DOMPurify.default.sanitize(item.content))}
       </div>
       <mdui-bottom-app-bar ${ref(this.appBarRef)} scroll-behavior="hide" scroll-threshold="30">
-          <span>${this.index + 1}/${this.list.length}</span>
 
           ${item.link ? html`<mdui-button-icon href="${item.link}" target="_blank"><mdui-icon-link></mdui-icon-link></mdui-button-icon>` : ''}
+
+          <span>${this.index + 1}/${this.list.length}</span>
 
           <div style="flex-grow: 1"></div>
 
